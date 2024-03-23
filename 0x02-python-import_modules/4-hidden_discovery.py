@@ -1,20 +1,12 @@
-#!/usr/bin/python3.8
+#!/usr/bin/python3
 import dis
 import sys
-import types
 
 if __name__ == "__main__":
-    with open("hidden_4.pyc", "rb") as file:
-        code = file.read()
+    sys.path.append(".")
+    from hidden_4 import *
 
-    module = types.ModuleType("hidden_4")
-    exec(code, module.__dict__)
-
-    names = []
-    for name in dir(module):
+    names = dir()
+    for name in sorted(names):
         if not name.startswith("__"):
-            names.append(name)
-
-    names.sort()
-    for name in names:
-        print(name)
+            print(name)
