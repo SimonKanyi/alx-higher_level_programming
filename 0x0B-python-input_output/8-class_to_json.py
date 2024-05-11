@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+<<<<<<< HEAD
 """
 Module for converting an object to its JSON representation.
 """
@@ -22,3 +23,18 @@ def class_to_json(obj):
             if isinstance(value, (list, dict, str, int, bool)):
                 description[attr] = value
     return description
+=======
+
+def class_to_json(obj):
+    """
+    Returns the dictionary description of an object for JSON serialization.
+
+    Args:
+        obj: An instance of a Class with serializable attributes.
+
+    Returns:
+        dict: Dictionary representing the serialized object.
+    """
+    attributes = obj.__dict__
+    return attributes
+>>>>>>> 02761f485d7ed4b53728a076f42cc8a0fd0f711f
