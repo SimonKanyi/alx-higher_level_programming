@@ -1,8 +1,26 @@
 #!/usr/bin/python3
+<<<<<<< HEAD
+"""
+Module for converting an object to its JSON representation.
+"""
+
+=======
+>>>>>>> 02761f485d7ed4b53728a076f42cc8a0fd0f711f
 import json
 
 def to_json_string(my_obj):
     """
+<<<<<<< HEAD
+    Converts an object to its JSON representation.
+
+    Args:
+        my_obj: The object to be converted to JSON.
+
+    Returns:
+        str: The JSON representation of the object.
+    """
+    return json.dumps(my_obj)
+=======
     Return the JSON representation of an object as a string.
 
     Args:
@@ -41,3 +59,4 @@ if __name__ == "__main__":
         print(type(s_my_set))
     except Exception as e:
         print("[{}] {}".format(e.__class__.__name__, e))
+>>>>>>> 02761f485d7ed4b53728a076f42cc8a0fd0f711f

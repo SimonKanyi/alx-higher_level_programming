@@ -1,8 +1,27 @@
 #!/usr/bin/python3
+<<<<<<< HEAD
+"""
+Module for loading an object from a JSON file.
+"""
+
+=======
+>>>>>>> 02761f485d7ed4b53728a076f42cc8a0fd0f711f
 import json
 
 def load_from_json_file(filename):
     """
+<<<<<<< HEAD
+    Loads an object from a JSON file.
+
+    Args:
+        filename (str): The name of the JSON file to load from.
+
+    Returns:
+        object: The object loaded from the JSON file.
+    """
+    with open(filename, mode='r', encoding='utf-8') as file:
+        return json.load(file)
+=======
     Create an object from a JSON file.
 
     Args:
@@ -41,3 +60,4 @@ if __name__ == "__main__":
         print(type(my_fake))
     except Exception as e:
         print("[{}] {}".format(e.__class__.__name__, e))
+>>>>>>> 02761f485d7ed4b53728a076f42cc8a0fd0f711f
