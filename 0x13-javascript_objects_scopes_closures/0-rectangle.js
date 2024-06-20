@@ -1,5 +1,9 @@
+#!/usr/bin/node
+/**
+ * Represents a rectangle.
+ */
 class Rectangle {
-    // Constructor can be added later if needed
+  // This class is intentionally empty as per the requirements.
 }
 
 module.exports = Rectangle;
