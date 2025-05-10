@@ -1,140 +1,95 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+import io
 
-def auto_logbook_loan(loan_amount, months):
-    # ===== INPUTS =====
-    additional_mv_premium = 0
-    total_principle_loan = loan_amount + additional_mv_premium
-    monthly_rate = 0.035  # 3.5% flat rate
+# ========================================================================
+# Loan Calculation Function with Fixed Rate
+# ========================================================================
 
-    # ===== UPFRONT DEDUCTIONS =====
-    admin_fee = 0.05 * total_principle_loan
-    car_track_installation = 6000
-    security_perfection = 3050
-    disbursement_fee = 2500
-    loan_insurance = 0.02 * loan_amount
-
-    total_upfront_fees = admin_fee + car_track_installation + security_perfection + disbursement_fee + loan_insurance
-    net_disbursement = total_principle_loan - total_upfront_fees
-
-    # ===== MONTHLY PAYMENTS =====
-    car_track_monthly = 2000
-    principal_per_month = total_principle_loan / months
-    interest_per_month = total_principle_loan * monthly_rate
-    total_monthly_payment = principal_per_month + interest_per_month + car_track_monthly
-
-    # ===== AMORTIZATION SCHEDULE =====
+def calculate_loan(loan_amount, months, monthly_rate, one_time_fee=0, monthly_fee=0):
+    total_principle = loan_amount + one_time_fee
+    principal_per_month = total_principle / months
+    fixed_interest = loan_amount * monthly_rate  # Fixed monthly interest
+    
     schedule = []
-    balance = total_principle_loan
-
+    balance = total_principle
+    
     for month in range(1, months + 1):
-        interest = total_principle_loan * monthly_rate
-        principal = principal_per_month
-        balance -= principal
+        payment = principal_per_month + fixed_interest + monthly_fee
+        balance -= principal_per_month
+        
         schedule.append({
             "Month": month,
-            "Principal": round(principal, 2),
-            "Interest": round(interest, 2),
-            "CarTrack Fee": car_track_monthly,
-            "Total Payment": round(total_monthly_payment, 2),
-            "Balance": round(balance, 2)
+            "Principal (KSH)": round(principal_per_month, 2),
+            "Interest (KSH)": round(fixed_interest, 2),
+            "Fees (KSH)": round(monthly_fee, 2),
+            "Total Payment (KSH)": round(payment, 2),
+            "Balance (KSH)": round(balance, 2)
         })
-
-    # ===== SUMMARY =====
-    total_repayable = total_monthly_payment * months
+    
+    total_repayable = payment * months
     summary = {
-        "Loan Type": "Auto Logbook",
-        "Loan Amount (KSH)": loan_amount,
-        "Duration (Months)": months,
-        "Net Disbursement (KSH)": round(net_disbursement, 2),
-        "Monthly Payment (KSH)": round(total_monthly_payment, 2),
-        "Total Repayable (KSH)": round(total_repayable, 2)
+        "Loan Amount": loan_amount,
+        "Monthly Rate": f"{monthly_rate*100}%",
+        "Total Interest": fixed_interest * months,
+        "Total Repayable": total_repayable
     }
-
+    
     return pd.DataFrame(schedule), pd.DataFrame([summary])
 
-def bullet_loan(loan_amount, months):
-    # ===== INPUTS =====
-    additional_mv_premium = 0
-    total_principle_loan = loan_amount + additional_mv_premium
-    monthly_rate = 0.06  # 6% flat rate
-
-    # ===== UPFRONT DEDUCTIONS =====
-    admin_fee = 0.05 * total_principle_loan
-    car_track_installation = 9000
-    disbursement_fee = 2500
-    security_perfection = 2550
-    loan_insurance = 0.02 * loan_amount
-
-    total_upfront_fees = admin_fee + car_track_installation + disbursement_fee + security_perfection + loan_insurance
-    net_disbursement = total_principle_loan - total_upfront_fees
-
-    # ===== MONTHLY PAYMENTS =====
-    interest_per_month = total_principle_loan * monthly_rate
-    car_track_monthly = 0
-    payments = []
-
-    for month in range(1, months + 1):
-        if month < months:
-            principal = 0
-            total_payment = interest_per_month + car_track_monthly
-        else:
-            principal = total_principle_loan
-            total_payment = principal + interest_per_month + car_track_monthly
-
-        payments.append({
-            "Month": month,
-            "Principal": round(principal, 2),
-            "Interest": round(interest_per_month, 2),
-            "CarTrack Fee": car_track_monthly,
-            "Total Payment": round(total_payment, 2)
-        })
-
-    # ===== SUMMARY =====
-    total_repayable = sum(p["Total Payment"] for p in payments)
-    summary = {
-        "Loan Type": "Bullet",
-        "Loan Amount (KSH)": loan_amount,
-        "Duration (Months)": months,
-        "Net Disbursement (KSH)": round(net_disbursement, 2),
-        "Total Repayable (KSH)": round(total_repayable, 2)
-    }
-
-    return pd.DataFrame(payments), pd.DataFrame([summary])
+# ========================================================================
+# Interactive UI
+# ========================================================================
 
 def main():
-    st.title("Loan Calculator 🏦")
-    st.markdown("Calculate loan repayments for **Auto Logbook** or **Bullet** loans.")
-
-    # Inputs
-    loan_type = st.radio("Loan Type:", ("Auto Logbook", "Bullet"))
-    loan_amount = st.number_input("Loan Amount (KSH):", min_value=1000, step=1000, value=200000)
-    months = st.slider("Loan Duration (Months):", 1, 36, 12)
-
-    # Calculate button
-    if st.button("Calculate"):
-        with st.spinner("Generating schedule..."):
-            if loan_type == "Auto Logbook":
-                schedule, summary = auto_logbook_loan(loan_amount, months)
-            else:
-                schedule, summary = bullet_loan(loan_amount, months)
-
-            # Display results
-            st.subheader("Loan Summary 📊")
-            st.table(summary)
-
-            st.subheader("Repayment Schedule 📅")
-            st.dataframe(schedule)
-
-            # Download buttons
-            csv_schedule = schedule.to_csv(index=False).encode('utf-8')
-            csv_summary = summary.to_csv(index=False).encode('utf-8')
-
-            col1, col2 = st.columns(2)
-            with col1:
-                st.download_button("Download Schedule", csv_schedule, "repayment_schedule.csv")
-            with col2:
-                st.download_button("Download Summary", csv_summary, "loan_summary.csv")
+    st.set_page_config(page_title="Loan Calculator", layout="centered")
+    st.title("🏦 Interactive Loan Calculator")
+    
+    # User Inputs
+    col1, col2 = st.columns(2)
+    with col1:
+        loan_amount = st.number_input("Loan Amount (KSH):", 
+                                    min_value=1000, 
+                                    value=300000,
+                                    step=1000)
+        months = st.slider("Loan Term (months):", 1, 60, 24)
+    
+    with col2:
+        monthly_rate = st.number_input("Monthly Interest Rate (%):",
+                                     min_value=0.1,
+                                     max_value=50.0,
+                                     value=3.5,
+                                     step=0.5) / 100
+        monthly_fee = st.number_input("Monthly Service Fee (KSH):", 
+                                     min_value=0,
+                                     value=0)
+    
+    # Calculate
+    if st.button("Generate Schedule"):
+        schedule_df, summary_df = calculate_loan(
+            loan_amount,
+            months,
+            monthly_rate,
+            monthly_fee=monthly_fee
+        )
+        
+        # Display Results
+        st.subheader("Payment Schedule")
+        st.dataframe(schedule_df)
+        
+        st.subheader("Summary")
+        st.table(summary_df)
+        
+        # Visualization
+        st.subheader("Payment Breakdown")
+        fig = px.bar(schedule_df, 
+                    x="Month", 
+                    y=["Principal (KSH)", "Interest (KSH)", "Fees (KSH)"],
+                    title="Monthly Payment Composition")
+        st.plotly_chart(fig)
 
 if __name__ == "__main__":
     main()
